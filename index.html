@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelBloom Recommendations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        
+        .hero-bg {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .section-hidden {
+            display: none !important;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        /* Custom scrollbar for results */
+        #results-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        #results-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        #results-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="fixed w-full z-50 bg-white/10 backdrop-blur-md border-b border-white/20 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="showSection('home')">
+                    <i class="fa-solid fa-plane-departure text-white text-3xl mr-2"></i>
+                    <span class="font-bold text-2xl text-white tracking-wider">TravelBloom</span>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#" onclick="showSection('home')" class="text-white hover:text-teal-300 px-3 py-2 rounded-md text-lg font-medium transition">Home</a>
+                    <a href="#" onclick="showSection('about')" class="text-white hover:text-teal-300 px-3 py-2 rounded-md text-lg font-medium transition">About Us</a>
+                    <a href="#" onclick="showSection('contact')" class="text-white hover:text-teal-300 px-3 py-2 rounded-md text-lg font-medium transition">Contact Us</a>
+                </div>
+
+                <!-- Search Bar (Visible only on Home) -->
+                <div id="nav-search" class="hidden md:flex items-center space-x-2">
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="search-input" placeholder="Search (e.g., beaches, temples, japan)" 
+                            class="pl-10 pr-4 py-2 rounded-full bg-white/90 focus:bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-400 w-64 shadow-lg transition-all">
+                    </div>
+                    <button onclick="performSearch()" class="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2 rounded-full font-semibold shadow-lg transition">Search</button>
+                    <button onclick="clearSearch()" class="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2 rounded-full font-semibold shadow-lg transition">Clear</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section id="home" class="hero-bg flex items-center pt-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col md:flex-row items-center justify-between z-10">
+            
+            <!-- Intro Text -->
+            <div class="md:w-1/2 text-white mb-10 md:mb-0 pr-0 md:pr-10">
+                <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight drop-shadow-lg">Explore the <br><span class="text-teal-400">Unseen World</span></h1>
+                <p class="text-xl mb-8 drop-shadow-md text-gray-200">Discover breathtaking beaches, magnificent temples, and vibrant cities. Enter a keyword to begin your journey and find your next perfect getaway.</p>
+                
+                <!-- Social Icons -->
+                <div class="flex space-x-6">
+                    <a href="#" class="text-white hover:text-teal-400 text-3xl transition"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="text-white hover:text-teal-400 text-3xl transition"><i class="fa-brands fa-facebook"></i></a>
+                    <a href="#" class="text-white hover:text-teal-400 text-3xl transition"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="text-white hover:text-teal-400 text-3xl transition"><i class="fa-brands fa-youtube"></i></a>
+                </div>
+            </div>
+
+            <!-- Results Overlay -->
+            <div id="results-wrapper" class="md:w-1/2 w-full hidden">
+                <div class="bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-3xl shadow-2xl">
+                    <h2 class="text-2xl font-bold text-white mb-4">Recommendations</h2>
+                    <div id="results-container" class="results-grid p-2">
+                        <!-- Results will be injected here via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="section-hidden min-h-screen bg-gray-50 pt-32 pb-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-4">About TravelBloom</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">We are passionate about connecting travelers with extraordinary experiences. Our mission is to make exploring the world easy, accessible, and unforgettable.</p>
+            </div>
+            
+            <h3 class="text-3xl font-bold text-center text-gray-900 mb-10">Meet Our Team</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <!-- Team Member 1 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg text-center hover:-translate-y-2 transition-transform duration-300">
+                    <img src="https://placehold.co/150x150/14b8a6/white?text=JD" alt="John Doe" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-teal-100">
+                    <h4 class="text-2xl font-bold text-gray-900">John Doe</h4>
+                    <p class="text-teal-600 font-semibold mb-3">CEO & Founder</p>
+                    <p class="text-gray-600 text-sm">Visionary leader with 15 years in the travel industry.</p>
+                </div>
+                <!-- Team Member 2 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg text-center hover:-translate-y-2 transition-transform duration-300">
+                    <img src="https://placehold.co/150x150/14b8a6/white?text=JS" alt="Jane Smith" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-teal-100">
+                    <h4 class="text-2xl font-bold text-gray-900">Jane Smith</h4>
+                    <p class="text-teal-600 font-semibold mb-3">Chief Travel Officer</p>
+                    <p class="text-gray-600 text-sm">Expert in curating unique and exotic travel packages.</p>
+                </div>
+                <!-- Team Member 3 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg text-center hover:-translate-y-2 transition-transform duration-300">
+                    <img src="https://placehold.co/150x150/14b8a6/white?text=MJ" alt="Mike Johnson" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-teal-100">
+                    <h4 class="text-2xl font-bold text-gray-900">Mike Johnson</h4>
+                    <p class="text-teal-600 font-semibold mb-3">Lead Developer</p>
+                    <p class="text-gray-600 text-sm">Ensures a seamless digital experience for all our users.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="section-hidden min-h-screen bg-gray-50 pt-32 pb-20">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+                <div class="bg-teal-600 p-10 text-white md:w-2/5 flex flex-col justify-center">
+                    <h2 class="text-3xl font-extrabold mb-4">Get in Touch</h2>
+                    <p class="mb-8 text-teal-100">Have questions about a destination or need help with recommendations? Send us a message!</p>
+                    <div class="flex items-center mb-4">
+                        <i class="fa-solid fa-location-dot text-xl w-8"></i>
+                        <span>123 Adventure Lane, NY 10001</span>
+                    </div>
+                    <div class="flex items-center mb-4">
+                        <i class="fa-solid fa-phone text-xl w-8"></i>
+                        <span>+1 (555) 123-4567</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-envelope text-xl w-8"></i>
+                        <span>support@travelbloom.com</span>
+                    </div>
+                </div>
+                <div class="p-10 md:w-3/5">
+                    <form onsubmit="submitForm(event)" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input type="text" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <input type="email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                            <textarea rows="4" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="travel_recommendation.js"></script>
+</body>
+</html>
